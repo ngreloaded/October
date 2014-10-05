@@ -56,7 +56,7 @@ namespace cs251
         {
             
             b2EdgeShape ground_shape; // this is for shape of ground
-            ground_shape.Set(b2Vec2(-90.0f, 0.0f), b2Vec2(90.0f, 0.0f));
+            ground_shape.Set(b2Vec2(-50.0f, -8.0f), b2Vec2(90.0f, -8.0f));
             b2BodyDef ground_body_def; // body definition of ground
             b1 = m_world->CreateBody(&ground_body_def);
             b1->CreateFixture(&ground_shape, 0.0f);
@@ -108,7 +108,7 @@ namespace cs251
             
             b2FixtureDef ballfd; // for the two smallest ball
             ballfd.shape = &circle;
-            ballfd.density = 10.64f;
+            ballfd.density = 10.0f;
             ballfd.friction = 0.2f;
             ballfd.restitution = 0.0f;
             b2FixtureDef ballfd1; // for the medium sized ball circle
@@ -125,26 +125,26 @@ namespace cs251
             b2BodyDef ball_common_body_def; //!ball_common_body_def is b2BodyDef type common body definition for all four balls
             ball_common_body_def.type = b2_dynamicBody;
             
-            ball_common_body_def.position.Set(-42.f, 41.4f);
+            ball_common_body_def.position.Set(-41.9f, 41.4f);
             sphere_body_common = m_world->CreateBody(&ball_common_body_def);
             sphere_body_common->CreateFixture(&ballfd);
             
-            ball_common_body_def.position.Set(-40.f, 41.4f);
+            ball_common_body_def.position.Set(-39.5f, 41.4f);
             sphere_body_common = m_world->CreateBody(&ball_common_body_def);
             sphere_body_common->CreateFixture(&ballfd);
             
-            ball_common_body_def.position.Set(-37.5f, 41.9f);
+            ball_common_body_def.position.Set(-36.8f, 41.9f);
             sphere_body_common = m_world->CreateBody(&ball_common_body_def);
             sphere_body_common->CreateFixture(&ballfd1);
             
-            ball_common_body_def.position.Set(-33.5f, 42.9f);
+            ball_common_body_def.position.Set(-33.f, 42.9f);
             sphere_body_common = m_world->CreateBody(&ball_common_body_def);
             sphere_body_common->CreateFixture(&ballfd2);
             
         }
         {
             b2BodyDef killer_body_def; //! killer_body_def is b2BodyDef type variable for killer's body definition
-            killer_body_def.position.Set(-50.f, 17.5f);
+            killer_body_def.position.Set(-58.f, 25.5f);
             b2Body* killer_body = m_world->CreateBody(&killer_body_def); // b2Body* type variable for killer's body
             
             b2PolygonShape killer_mid_body_shape;  // b2PolygonShape type variable for killer's mid_body shape
@@ -187,7 +187,7 @@ namespace cs251
         {
             float x=0;
             b2BodyDef human_body_def; //!human_body_def is b2BodyDef type variable for human's body definition
-            human_body_def.position.Set(-80.f, 17.5f);
+            human_body_def.position.Set(-80.f, 25.5f);
             b2Body* human_body = m_world->CreateBody(&human_body_def); //b2Body* type variable for human's body
             
             b2PolygonShape human_mid_body_shape; // b2PolygonShape type variable for human's face
@@ -234,20 +234,30 @@ namespace cs251
             
             b2FixtureDef hydrogen_sphere_fixture_def; //b2FixtureDef type variable for hydrogen sphere fixture definition
             hydrogen_sphere_fixture_def.shape = &hydrogen_sphere_shape;
-            hydrogen_sphere_fixture_def.density = 15.0f;
-            hydrogen_sphere_fixture_def.friction = 0.2f;
+            hydrogen_sphere_fixture_def.density = 10.0f;
+            hydrogen_sphere_fixture_def.friction = 0.1f;
             hydrogen_sphere_fixture_def.restitution = 0.0f;
             b2BodyDef hydrogen_sphere_body_def; // b2BodyDef type variable for hydrogen sphere body definition
             hydrogen_sphere_body_def.type = b2_dynamicBody;
-            hydrogen_sphere_body_def.position.Set(-74.f, 2.f);
+            hydrogen_sphere_body_def.position.Set(-72.f, -5.f);
             hydrogen_sphere_body = m_world->CreateBody(&hydrogen_sphere_body_def);
             hydrogen_sphere_body->CreateFixture(&hydrogen_sphere_fixture_def);
             hydrogen_sphere_body->SetGravityScale(-1);
             
-            hydrogen_sphere_body_def.position.Set(-73.f, 2.f);
+            hydrogen_sphere_body_def.position.Set(-54.f, -5.f);
             hydrogen_sphere_body = m_world->CreateBody(&hydrogen_sphere_body_def);
             hydrogen_sphere_body->CreateFixture(&hydrogen_sphere_fixture_def);
             hydrogen_sphere_body->SetGravityScale(-1);
+            
+            hydrogen_sphere_shape.m_radius = 0.5f;
+            hydrogen_sphere_fixture_def.density = 5.0f;
+            hydrogen_sphere_fixture_def.friction = 0.0f;
+            hydrogen_sphere_fixture_def.restitution = 0.6f;
+            hydrogen_sphere_body_def.type = b2_dynamicBody;
+            hydrogen_sphere_body_def.position.Set(-78.f, 17.f);
+            hydrogen_sphere_body = m_world->CreateBody(&hydrogen_sphere_body_def);
+            hydrogen_sphere_body->CreateFixture(&hydrogen_sphere_fixture_def);
+            hydrogen_sphere_body->SetLinearVelocity(b2Vec2(5,2));
             
         }
         {
@@ -255,46 +265,69 @@ namespace cs251
             hinge_body_def.position.Set(-80.f, 4.f);
             b2Body* hinge_body = m_world->CreateBody(&hinge_body_def);
             
-            b2PolygonShape shape1; // b2PolygonShape type variable for body1
-            shape1.SetAsBox(6.f, 4.f, b2Vec2(0,0),0);
+            b2PolygonShape shape1; // b2PolygonShape type variable for body1 = box below human
+            shape1.SetAsBox(6.f, 4.f, b2Vec2(0,8),0);
             b2FixtureDef *fd1 = new b2FixtureDef;
             fd1->shape = &shape1;
             
-            b2PolygonShape shape2; // b2PolygonShape type variable for body2
-            shape2.SetAsBox(12.f, 4.f, b2Vec2(25,0),0);
+            b2PolygonShape shape2; // b2PolygonShape type variable for body2 = box below killer
+            shape2.SetAsBox(8.f, 4.f, b2Vec2(17,8),0);
             b2FixtureDef *fd2 = new b2FixtureDef;
             fd2->shape = &shape2;
             
-            b2PolygonShape shape3; // b2PolygonShape type variable for body3
-            shape3.SetAsBox(0.6f, 16.f, b2Vec2(36,20),0);
+            b2PolygonShape shape3; // b2PolygonShape type variable for body3 = tower
+            shape3.SetAsBox(0.6f, 16.f, b2Vec2(36,28),0);
             b2FixtureDef *fd3 = new b2FixtureDef;
             fd3->shape = &shape3;
 
-            
+            b2PolygonShape shape4; // b2PolygonShape type variable for body4 = box below tower
+            shape4.SetAsBox(4.f, 4.f, b2Vec2(34,8),0);
+            b2FixtureDef *fd4 = new b2FixtureDef;
+            fd4->shape = &shape4;
             
             b2PolygonShape shape10; //! shape10 is b2PolygonShape type variable for body 10. body10 = horizontal bar
-            shape10.SetAsBox(32.f, 0.4f, b2Vec2(-20.f,0.f),0);
+            shape10.SetAsBox(36.f, 0.4f, b2Vec2(-20.f,0.f),0);
             
             b2PolygonShape shape11; //!shape11 b2PolygonShape type variable for body11. body11 = verticla bar.
-            shape11.SetAsBox(0.2f, 8.0f , b2Vec2(-50.f,1.f),0);
-			
+            shape11.SetAsBox(0.2f, 3.0f , b2Vec2(-56.f,2.f),0);
+            
+			b2PolygonShape shape12; //!shape11 b2PolygonShape type variable for body11. body11 = verticla bar.
+            shape12.SetAsBox(0.2f, 6.0f , b2Vec2(-59.f,2.f),0);
+            b2PolygonShape shape13; //!shape11 b2PolygonShape type variable for body11. body11 = verticla bar.
+            shape13.SetAsBox(9.f, 0.3f , b2Vec2(-52.f,-5.f),-0.2);
+            
             b2BodyDef bd10; // b2BodyDef type variable for body10
             bd10.position.Set(-44.0f, 40.0f);
             bd10.type = b2_dynamicBody;
             b2Body* body10 = m_world->CreateBody(&bd10);
             
             b2FixtureDef *fd10 = new b2FixtureDef; // b2FixtureDef type variable for body10
-            fd10->density = 1.f;
+            fd10->density = 0.52f;
+            fd10->restitution = 0.0f;
             fd10->shape = new b2PolygonShape;
             fd10->shape = &shape10;
             
             b2FixtureDef *fd11 = new b2FixtureDef; // b2BodyDef type variable for body11
-            fd11->density = 1.f;
+            fd11->density = 0.2f;
             fd11->shape = new b2PolygonShape;
             fd11->shape = &shape11;
             
+            b2FixtureDef *fd12 = new b2FixtureDef; // b2FixtureDef type variable for body10
+            fd12->density = 0.2f;
+            fd12->restitution = 0.0f;
+            fd12->shape = new b2PolygonShape;
+            fd12->shape = &shape12;
+            
+            b2FixtureDef *fd13 = new b2FixtureDef; // b2FixtureDef type variable for body10
+            fd13->density = 0.2f;
+            fd13->restitution = 0.0f;
+            fd13->shape = new b2PolygonShape;
+            fd13->shape = &shape13;
+            
             body10->CreateFixture(fd10);
             body10->CreateFixture(fd11);
+            body10->CreateFixture(fd12);
+            body10->CreateFixture(fd13);
             
             b2BodyDef bd12; // b2BodyDef type variable for body12 which is hidden object.
             bd12.position.Set(-44.0f, 40.0f);
@@ -304,8 +337,8 @@ namespace cs251
             jointDef10.bodyA = body10;
             jointDef10.bodyB = body12;
 			
-            jointDef10.localAnchorA.Set(+0.4,0);
-            jointDef10.localAnchorB.Set(+0.4,0);
+            jointDef10.localAnchorA.Set(+0.5,0.1);
+            jointDef10.localAnchorB.Set(-0.5,-0.1);
             jointDef10.collideConnected = false;
             
             m_world->CreateJoint(&jointDef10);
@@ -313,8 +346,138 @@ namespace cs251
             hinge_body->CreateFixture(fd1);
             hinge_body->CreateFixture(fd2);
             hinge_body->CreateFixture(fd3);
-        }
+            hinge_body->CreateFixture(fd4);
+            
+            {
+//                b2PolygonShape shape5; // b2PolygonShape type variable for body5 = hanging tower
+//                shape5.SetAsBox(0.3f, 4.f, b2Vec2(18,0),0);
+//                b2FixtureDef *fd5 = new b2FixtureDef;
+//                fd5->shape = &shape5;
+//                
+//                hinge_body->CreateFixture(fd5);
+                
+                
+                b2BodyDef hanger_body_def; //!hinge_body_def is b2BodyDef type variable for hinge body definition
+                hanger_body_def.position.Set(-63, 0);
+                b2Body* hanger_body = m_world->CreateBody(&hanger_body_def);
+                
+                float32 a = -3.0f;
+                b2Vec2 h(63.0f, a);
+                b2BodyDef bodyDef;
+                bodyDef.position = -h;
+                b2Body* body = m_world->CreateBody(&bodyDef);
+                
+                b2PolygonShape shape;
+                shape.SetAsBox(0.4f, 5.f);
+                body->CreateFixture(&shape, 20.f);
+                
+                b2Vec2 p(63.0f, 0.f);
+                b2BodyDef bodyDef1;
+                bodyDef1.type = b2_dynamicBody;
+                bodyDef1.position = -p;
+                b2Body* body1 = m_world->CreateBody(&bodyDef1);
+                b2PolygonShape shape1;
+                shape1.SetAsBox(9.f, 0.4f);
+                body1->CreateFixture(&shape1, 20.f);
+                
+                b2Vec2 h111(0.0f, 2.5f);
+                b2RevoluteJointDef jointDef;
+                jointDef.bodyA = hanger_body;
+                jointDef.bodyB = body1;
+                jointDef.localAnchorA.SetZero();
+                jointDef.localAnchorB=h111;
+                m_world->CreateJoint(&jointDef);
+            }
 
+        }
+        
+//        {
+//            b2BodyDef hanger_body_def; //!hinge_body_def is b2BodyDef type variable for hinge body definition
+//            hanger_body_def.position.Set(-80.f, -4.f);
+//            b2Body* hanger_body = m_world->CreateBody(&hanger_body_def);
+//
+//            float32 a = 5.0f;
+//            b2Vec2 h(0.0f, a);
+//            
+//            float32 density = 20.0f;
+//            b2Vec2 h1(0.0f, a);
+//            
+//            b2Vec2 p = hanger_body->GetPosition() + b2Vec2_zero - h1;
+//            
+//            b2BodyDef bodyDef;
+//            bodyDef.type = b2_dynamicBody;
+//            bodyDef.position = p;
+//            b2Body* body = m_world->CreateBody(&bodyDef);
+//            
+//            b2PolygonShape shape;
+//            shape.SetAsBox(0.25f * a, a);
+//            body->CreateFixture(&shape, density);
+//            
+////            b2PolygonShape killer_right_hand_shape; // b2PolygonShape type variable for killer's right_hand shape
+////            killer_right_hand_shape.SetAsBox(0.3f, 2.f, b2Vec2(2.5,-3),0.3);
+////            b2FixtureDef *killer_right_hand_fixture = new b2FixtureDef; // b2FixtureDef type variable for killer's right_hand fixture
+////            killer_right_hand_fixture->shape = &killer_right_hand_shape;
+////            killer_body->CreateFixture(killer_left_leg_fixture);
+//
+////            b2PolygonShape killer_right_hand_shape;
+////            killer_right_hand_shape.SetAsBox(a*4,a*0.25,b2Vec2(2.5,-23),0.3);
+////            b2FixtureDef *killer_right_hand_fixture = new b2FixtureDef;
+////            killer_right_hand_fixture->shape = &killer_right_hand_shape;
+////            hanger_body->CreateFixture(killer_right_hand_fixture);
+//            a=3;
+//            float32 offset=0.0f;
+//            b2Vec2 h111(0.0f, a);
+//            b2Vec2 p1 = p + b2Vec2(offset, -a) - h111;
+//            
+//            b2BodyDef bodyDef1;
+//            bodyDef1.type = b2_dynamicBody;
+//            bodyDef1.position = p1;
+//            b2Body* body1 = m_world->CreateBody(&bodyDef1);
+//            
+//            shape.SetAsBox(12.0f,1.0f);
+//            body1->CreateFixture(&shape, density);
+//            
+//            b2RevoluteJointDef jointDef1;
+//            jointDef1.bodyA = hanger_body;
+//            jointDef1.bodyB = body1;
+//            jointDef1.localAnchorA.SetZero();
+//            jointDef1.localAnchorB = h111 + 3*h111;
+//            m_world->CreateJoint(&jointDef1);
+//            
+////            float32 offset=20.0f;
+////            b2Vec2 a1 = b2Vec2(0, -a);
+////            b2Vec2 a2 = b2Vec2(0, -a);
+////            
+////            b2BodyDef bodyDef1;
+////            bodyDef1.position = a1;
+////            
+////            b2BodyDef bodyDef2;
+////            bodyDef2.position = a2;
+////            b2Body* body1 = m_world->CreateBody(&bodyDef1);
+////            b2Body* body2 = m_world->CreateBody(&bodyDef2);
+////            
+////            b2RevoluteJointDef jointDef1,jointDef2,jointDef3;
+////            jointDef1.bodyA = body;
+////            jointDef1.localAnchorB = h;
+////            
+////            jointDef1.localAnchorA = a1;
+////            jointDef1.bodyB = body1;
+////            m_world->CreateJoint(&jointDef1);
+////
+////            jointDef1.localAnchorA = a2;
+////            jointDef1.bodyB = body2;
+////            m_world->CreateJoint(&jointDef1);
+//            
+//            //b2Body* root = AddNode(ground, b2Vec2_zero, 0, 3.0f, a);
+//            
+//            b2RevoluteJointDef jointDef;
+//            jointDef.bodyA = hanger_body;
+//            jointDef.bodyB = body;
+//            jointDef.localAnchorA.SetZero();
+//            jointDef.localAnchorB = h;
+//            m_world->CreateJoint(&jointDef);
+//    }
+        
     }
     
     sim_t *sim = new sim_t("Dominos", dominos_t::create);

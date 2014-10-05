@@ -277,7 +277,7 @@ namespace cs251
     test->set_text_line(30);
     b2Vec2 old_center = settings.view_center;
     settings.hz = settings_hz;
-      settings.view_center.x = settings.view_center.x + 0.04f; //ng line added
+      //settings.view_center.x = settings.view_center.x + 0.04f; //ng line added
     test->step(&settings);
     
     if (old_center.x != settings.view_center.x || old_center.y != settings.view_center.y)
