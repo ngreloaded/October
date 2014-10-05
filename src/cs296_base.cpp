@@ -16,12 +16,12 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "cs296_base.hpp"
+#include "cs251_base.hpp"
 #include <cstdio>
 #include <ctime>
 #include <unistd.h>
 using namespace std;
-using namespace cs296;
+using namespace cs251;
 
 
 base_sim_t::base_sim_t()

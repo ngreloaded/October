@@ -17,7 +17,7 @@
 */
 
 /* 
- * Base code for CS 296 Software Systems Lab 
+ * Base code for CS 251 Software Systems Lab 
  * Department of Computer Science and Engineering, IIT Bombay
  * Instructor: Parag Chaudhuri
  */
@@ -25,7 +25,7 @@
 #ifndef _DOMINOS_HPP_
 #define _DOMINOS_HPP_
 
-namespace cs296
+namespace cs251
 {
   //! This is the class that sets up the Box2D simulation world
   //! Notice the public inheritance 

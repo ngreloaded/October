@@ -17,7 +17,7 @@
 */
 
 /* 
- * Base code for CS 296 Software Systems Lab 
+ * Base code for CS 251 Software Systems Lab 
  * Department of Computer Science and Engineering, IIT Bombay
  * Instructor: Parag Chaudhuri
  */
@@ -26,7 +26,7 @@
 //! Included in double quotes - the path to find these has to be given at compile time
 #include <iostream>
 #include "render.hpp"
-#include "cs296_base.hpp"
+#include "cs251_base.hpp"
 #include "callbacks.hpp"
 #include <sys/time.h>
 //! GLUI is the library used for drawing the GUI
@@ -45,14 +45,14 @@
 
 
 //! Notice the use of extern. Why is it used here?
-namespace cs296
+namespace cs251
 {
   extern int32 test_index;
   extern int32 test_selection;
   extern int32 test_count;
-  extern cs296::sim_t* entry;
-  extern cs296::base_sim_t* test;
-  extern cs296::settings_t settings;
+  extern cs251::sim_t* entry;
+  extern cs251::base_sim_t* test;
+  extern cs251::settings_t settings;
   extern const int32 frame_period;
   extern float settings_hz;
   extern int32 width;
@@ -60,9 +60,9 @@ namespace cs296
   extern int32 main_window;
 };
 
-//! This opens up the cs296 namespace
+//! This opens up the cs251 namespace
 //! What is the consequence of opening up a namespace?
-using namespace cs296;
+using namespace cs251;
 
 
 //! This function creates all the GLUI gui elements

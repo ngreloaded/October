@@ -1,5 +1,5 @@
 /* 
- * Base code for CS 296 Software Systems Lab 
+ * Base code for CS 251 Software Systems Lab 
  * Department of Computer Science and Engineering, IIT Bombay
  * Instructor: Parag Chaudhuri
  */
@@ -18,14 +18,14 @@
 //! clashes in scope. Read about the use of named and unnamed
 //! namespaces in C++ Figure out where all the datatypes used below
 //! are defined
-namespace cs296
+namespace cs251
 {
   int32 test_index = 0;
   int32 test_selection = 0;
   int32 test_count = 0;
-  cs296::sim_t* entry;
-  cs296::base_sim_t* test;
-  cs296::settings_t settings;
+  cs251::sim_t* entry;
+  cs251::base_sim_t* test;
+  cs251::settings_t settings;
   int32 width = 640;
   int32 height = 480;
   int32 frame_period = 16;
@@ -293,7 +293,7 @@ namespace cs296
       {
 	test_index = test_selection;
 	delete test;
-	entry = cs296::sim;
+	entry = cs251::sim;
 	test = entry->create_fcn();
 	view_zoom = 1.0f;
 	settings.view_center.Set(0.0f, 20.0f);
@@ -306,7 +306,7 @@ namespace cs296
   void callbacks_t::restart_cb(int)
   {
     delete test;
-    entry = cs296::sim;
+    entry = cs251::sim;
     test = entry->create_fcn();
     resize_cb(width, height);
   }

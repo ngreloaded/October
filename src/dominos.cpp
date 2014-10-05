@@ -17,13 +17,13 @@
 */
 
 /* 
- * Base code for CS 296 Software Systems Lab 
+ * Base code for CS 251 Software Systems Lab 
  * Department of Computer Science and Engineering, IIT Bombay
  * Instructor: Parag Chaudhuri
  */
 #include <stdio.h>
 #define DEGTORAD 0.0174532925199432957f
-#include "cs296_base.hpp"
+#include "cs251_base.hpp"
 #include "render.hpp"
 
 #ifdef __APPLE__
@@ -37,7 +37,7 @@ using namespace std;
 
 #include "dominos.hpp"
 
-namespace cs296
+namespace cs251
 {
   /**  The is the constructor 
    * This is the documentation block for the constructor.

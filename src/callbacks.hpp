@@ -1,5 +1,5 @@
 /* 
- * Base code for CS 296 Software Systems Lab 
+ * Base code for CS 251 Software Systems Lab 
  * Department of Computer Science and Engineering, IIT Bombay
  * Instructor: Parag Chaudhuri
  */
@@ -22,9 +22,9 @@
 //! These are user defined include files
 //! Included in double quotes - the path to find these has to be given at compile time
 #include "render.hpp"
-#include "cs296_base.hpp"
+#include "cs251_base.hpp"
 
-namespace cs296
+namespace cs251
 {
   class callbacks_t
   {

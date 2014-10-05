@@ -17,14 +17,14 @@
 */
 
 /* 
- * Base code for CS 296 Software Systems Lab 
+ * Base code for CS 251 Software Systems Lab 
  * Department of Computer Science and Engineering, IIT Bombay
  * Instructor: Parag Chaudhuri
  */
 
 
-#ifndef _CS296BASE_HPP_
-#define _CS296BASE_HPP_
+#ifndef _CS251BASE_HPP_
+#define _CS251BASE_HPP_
 
 #include "render.hpp"
 #include <Box2D/Box2D.h>
@@ -32,7 +32,7 @@
 
 #define	RAND_LIMIT 32767
 
-namespace cs296
+namespace cs251
 {
 
  //! What is the difference between a class and a struct in C++?
