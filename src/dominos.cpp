@@ -16,1093 +16,307 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-/* 
- * Base code for CS 251 Software Systems Lab 
+/*
+ * Base code for CS 251 Software Systems Lab
  * Department of Computer Science and Engineering, IIT Bombay
- * Instructor: Parag Chaudhuri
+ * Instructor: Sharat Chandran
+ 
  */
-#include <stdio.h>
-#define DEGTORAD 0.0174532925199432957f
+
+//! These are user defined include files
+//! Included in double quotes - the path to find these has to be given at compile time
 #include "cs251_base.hpp"
 #include "render.hpp"
 
+
 #ifdef __APPLE__
-	#include <GLUT/glut.h>
+#include <GLUT/glut.h>
 #else
-	#include "GL/freeglut.h"
+#include "GL/freeglut.h"
 #endif
 
 #include <cstring>
+#include <iostream>
 using namespace std;
 
 #include "dominos.hpp"
-
+//! The namespace protects the global variables and other names from
+//! clashes in scope. Read about the use of named and unnamed
+//! namespaces in C++ Figure out where all the datatypes used below
+//! are defined
 namespace cs251
 {
-  /**  The is the constructor 
-   * This is the documentation block for the constructor.
-   */ 
-	
-	b2Vec2 m_offset; //! This is the offset variable which moves a body from particular distance from center
-	b2Body* m_wheel; //! This is main wheel which is used on walking of cheetah
-	float32 m_motorSpeed; //! Variable storing the motorspeed
-	bool m_motorOn; //! Bool value to check is motor is On
-	int val=0;
-	float32 c = 2.5;
-	
-	/*! \brief Function to create leg
-	 * 
-	 * This function is used to create the leg of the cheetah with different orientaation
-	 * */
-	void dominos_t::CreateLeg(float32 s, const b2Vec2& wheelAnchor)
-	{
-		//! Cordinates controlling the orientation of leg
-		b2Vec2 p1(c * 5.4f * s, -6.1f * c);
-		b2Vec2 p2(c * 7.2f * s, -1.2f * c);
-		b2Vec2 p3(c * 4.3f * s, -1.9f * c);
-		b2Vec2 p4(c * 3.1f * s, 0.8f * c);
-		b2Vec2 p5(c * 6.0f * s, 1.5f * c);
-		b2Vec2 p6(c * 2.5f * s, 3.7f * c);
-
-		b2FixtureDef fd1, fd2;
-		fd1.filter.groupIndex = -1;
-		fd2.filter.groupIndex = -1;
-		fd1.density = 1.0f;
-		fd2.density = 1.0f;
- /*! \brief 
-  *
-  * name -poly1 <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Define a polygon shape which is used in cheetah<br>
-  * 
-  */
-   /*! \brief 
-  *
-  * name -poly2 <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Defines a polygon which is used in cheetah<br>
-  * 
-  */
-
-		b2PolygonShape poly1, poly2;
-
-		if (s > 0.0f)
-		{
-			b2Vec2 vertices[3];
-
-			vertices[0] = p1;
-			vertices[1] = p2;
-			vertices[2] = p3;
-			poly1.Set(vertices, 3);
-
-			vertices[0] = b2Vec2_zero;
-			vertices[1] = p5 - p4;
-			vertices[2] = p6 - p4;
-			poly2.Set(vertices, 3);
-		}
-		else
-		{
-			b2Vec2 vertices[3];
-
-			vertices[0] = p1;
-			vertices[1] = p3;
-			vertices[2] = p2;
-			poly1.Set(vertices, 3);
-
-			vertices[0] = b2Vec2_zero;
-			vertices[1] = p6 - p4;
-			vertices[2] = p5 - p4;
-			poly2.Set(vertices, 3);
-		}
-
-		fd1.shape = &poly1;
-		fd2.shape = &poly2;
-/*!		
- * name -bd1 <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for ------ <br>
-  */
-  /*!		
- * name -bd2 <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for ------ <br>
-  */
-		b2BodyDef bd1, bd2;
-		bd1.type = b2_dynamicBody;
-		bd2.type = b2_dynamicBody;
-		bd1.position = m_offset;
-		bd2.position = p4 + m_offset;
-
-		bd1.angularDamping = 10.0f;
-		bd2.angularDamping = 10.0f;
-
-		b2Body* body1 = m_world->CreateBody(&bd1);
-		b2Body* body2 = m_world->CreateBody(&bd2);
-
-		body1->CreateFixture(&fd1);
-		body2->CreateFixture(&fd2);
-
-  /*! \brief 
-  * name -distancejoint <br>
-  * datatype -b2DistanceJointDef <br>
-  * operation -Defining an spring joint between two bodies to staility <br>
-  * value - this joins body1 and body2<br>
-  * 
-  */
-		b2DistanceJointDef distanceJoint;
-
-		distanceJoint.dampingRatio = 0.7f;
-		distanceJoint.frequencyHz = 8.0f;
-
-		distanceJoint.Initialize(body1, body2, p2 + m_offset, p5 + m_offset);
-		m_world->CreateJoint(&distanceJoint);
-
-		distanceJoint.Initialize(body1, body2, p3 + m_offset, p4 + m_offset);
-		m_world->CreateJoint(&distanceJoint);
-
-		distanceJoint.Initialize(body1, m_wheel, p3 + m_offset, wheelAnchor + m_offset);
-		m_world->CreateJoint(&distanceJoint);
-
-		distanceJoint.Initialize(body2, m_wheel, p6 + m_offset, wheelAnchor + m_offset);
-		m_world->CreateJoint(&distanceJoint);
-		/*!
- * name -rjd <br>
-  * datatype -b2RevoluteJointDef <br>
-  * operation -Defining an anchor point where the bodies are joined. <br>
-  * value - Joints the body2 and cheetahBody<br>
-  */
-		b2RevoluteJointDef rjd;
-
-		rjd.Initialize(body2, cheetahBody, p4 + m_offset);
-		m_world->CreateJoint(&rjd);
-		
-		float32 damping_const = 5.0f;
-		
-		if(s == -1)
-		{
-			// making the first leg part 1
-			/*!
- * name -leg1 <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the leg1<br>
-  */
-  /*!
- * name -leg2 <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the leg2<br>
-  */
-  /*!		
- * name -bodydef <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for the parts of leg <br>
-  */
-		 /*! \brief 
-  *
-  * name -shape <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for the leg of the cheetah<br>
-  * 
-  */
-  /*!
-   * name -fixture <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for the leg of the cheetah<br>
-  */
-			b2Body* leg1;	
-			b2Body* leg2;
-			
-			{
-				b2BodyDef bodyDef;
-				bodyDef.type = b2_dynamicBody;
-				bodyDef.position.Set(m_offset.x + -14.0f, m_offset.y + -13.0f);
-				bodyDef.angle = -0.38 * b2_pi;
-				bodyDef.angularDamping = damping_const;
-				
-				b2PolygonShape shape;
-				shape.SetAsBox(5.0f, 0.5f);
-				
-				b2FixtureDef fixture;
-				fixture.density = 0.1f;
-				fixture.friction = 1.0f;
-				fixture.shape = &shape;
-				fixture.filter.groupIndex = -1;
-				
-				leg1 = m_world->CreateBody(&bodyDef);
-				leg1->CreateFixture(&fixture);
-			}
-			
-			{
-				b2BodyDef bodyDef;
-				bodyDef.type = b2_dynamicBody;
-				bodyDef.position.Set(m_offset.x + -13.0f, m_offset.y + -18.0f);
-				bodyDef.angle = 0.40 * b2_pi;
-				bodyDef.angularDamping = damping_const;
-				
-				b2PolygonShape shape;
-				shape.SetAsBox(7.0f, 0.5f);
-				
-				b2FixtureDef fixture;
-				fixture.density = 0.1f;
-				fixture.friction = 1.0f;
-				fixture.shape = &shape;
-				fixture.filter.groupIndex = -1;
-				
-				leg2 = m_world->CreateBody(&bodyDef);
-				leg2->CreateFixture(&fixture);
-			}	
-			
-			{
-				// joining the toes to the last body part 
-				/*!
-    * name -joint <br>
-  * datatype - b2WeldJointDef <br>
-  * operation -Defining a joint which joins two bodies rigidly <br>
-  * value - Joints the leg1 and body1<br>
-  */
-				b2WeldJointDef joint;
-				b2Vec2 vec;
-				vec.Set(m_offset.x + -14.1f, m_offset.y + -13.0f);
-				joint.Initialize(leg1 ,body1 , vec);
-				m_world->CreateJoint(&joint);
-			}
-			
-			{	
-				// now joining joint1
-				
-				b2WeldJointDef joint;//!joins the two parts of a leg
-				b2Vec2 vec(m_offset.x + -12.0f, m_offset.y + -17.5f);
-				joint.Initialize(leg2, leg1, vec);
-				m_world->CreateJoint(&joint);
-			}
-			
-		}
-		
-			/*!
- * name -leg1 <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the leg1<br>
-  */
-  /*!
- * name -leg2 <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the leg2<br>
-  */
-  /*!		
- * name -bodydef <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for the parts of leg <br>
-  */
-		 /*! \brief 
-  *
-  * name -shape <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for the leg of the cheetah<br>
-  * 
-  */
-  /*!
-   * name -fixture <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for the leg of the cheetah<br>
-  */
-		else 		// back legs
-		{
-			
-			
-			// making the first leg part 1
-			b2Body* leg1;	
-			b2Body* leg2;
-			
-			{
-				b2BodyDef bodyDef;
-				bodyDef.type = b2_dynamicBody;
-				bodyDef.position.Set(m_offset.x + 13.7f, m_offset.y + -14.0f);
-				bodyDef.angle = -0.42 * b2_pi;
-				bodyDef.angularDamping = damping_const;
-				
-				b2PolygonShape shape;
-				shape.SetAsBox(5.0f, 0.5f);
-				
-				b2FixtureDef fixture;
-				fixture.density = 0.1f;
-				fixture.friction = 1.0f;
-				fixture.shape = &shape;
-				fixture.filter.groupIndex = -1;
-				
-				leg1 = m_world->CreateBody(&bodyDef);
-				leg1->CreateFixture(&fixture);
-			}	
-			
-			{
-				b2BodyDef bodyDef;
-				bodyDef.type = b2_dynamicBody;
-				bodyDef.position.Set(m_offset.x + 15.0f, m_offset.y + -19.5f);
-				bodyDef.angle = 0.46 * b2_pi;
-				bodyDef.angularDamping = damping_const;
-				
-				b2PolygonShape shape;
-				shape.SetAsBox(5.0f, 0.5f);
-				
-				b2FixtureDef fixture;
-				fixture.density = 0.1f;
-				fixture.friction = 1.0f;
-				fixture.shape = &shape;
-				fixture.filter.groupIndex = -1;
-				
-				leg2 = m_world->CreateBody(&bodyDef);
-				leg2->CreateFixture(&fixture);
-			}
-				/*!
-    * name -joint <br>
-  * datatype - b2WeldJointDef <br>
-  * operation -Defining a joint which joins two bodies rigidly <br>
-  * value - Joints the leg1 and body1<br>
-  */		
-			{
-				// joining the toes to the last bony part 
-				b2WeldJointDef joint;
-				b2Vec2 vec;
-				vec.Set(m_offset.x + 13.7f, m_offset.y + -15.0f);
-				joint.Initialize(leg1 ,body1 , vec);
-				m_world->CreateJoint(&joint);
-			}
-			
-			{	
-				// now joining joint1
-				b2WeldJointDef joint;//!joins the two parts of the leg
-				b2Vec2 vec(m_offset.x + 15.0f, m_offset.y + -20.5f);
-				joint.Initialize(leg2, leg1, vec);
-				m_world->CreateJoint(&joint);
-			}
-			
-		}
-	}
-	
-	
-
-  dominos_t::dominos_t()
-  {
-	  
-	  //GROUND
-	  /*!
- * name -ground <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the ground<br>
-  */
-  /*!
-   * name -shape <br>
-  * datatype -b2EdgeShape <br>
-  * operation -Defines an edge between two given vectors. <br>
-  * value - Contains the shape for ground<br>
-  */
-  /*!		
- * name -bd <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for ground <br>
-  */
-	  {
-		  b2Body* ground;
-		  b2EdgeShape shape;
-		  shape.Set(b2Vec2(-900.0f, 5.0f), b2Vec2(900.0f, 5.0f));
-		  b2BodyDef bd; 
-		  ground = m_world->CreateBody(&bd); 
-		  ground->CreateFixture(&shape, 0.0f);
-	  }
-	  
-
-		m_offset.Set(0.0f, 31.0f);
-		m_motorSpeed = -5.0;
-		m_motorOn = true;
-		b2Vec2 pivot(0.0f, 0.8f);
-
-		// The main body part named cheetahbody
-		  /*! \brief 
-  *
-  * name -shape <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for cheetahbody(rectangle which support the whole body)<br>
-  * 
-  */
-   /*!
-   * name -sd <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for cheetah body<br>
-  */
-  /*!		
- * name -bd <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for the cheetah body <br>
-  */
-
-		{
-			b2PolygonShape shape;
-			shape.SetAsBox(20.0f, 2.0f);
-
-			b2FixtureDef sd;
-		    sd.restitution = 0.1f;
-			sd.density =  5.0f;
-			sd.shape = &shape;
-			sd.filter.groupIndex = -1;
-			b2BodyDef bd;
-			
-			bd.type = b2_dynamicBody;
-			bd.position = pivot + m_offset;
-			cheetahBody = m_world->CreateBody(&bd);
-			cheetahBody->CreateFixture(&sd);
-		}
-/*!
-  * name -shape <br>
-  * datatype -b2CircleShape <br>
-  * operation -Defines an circle shape with a radius <br>
-  * value - A cirlce if radius c*1.6<br>
-  *
-  */
-   /*!
-   * name -sd <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for cirlce<br>
-  */ 
-		{
-			b2CircleShape shape;
-			shape.m_radius = c * 1.6f;
-
-			b2FixtureDef sd;
-			sd.density = 1.0f;
-			sd.shape = &shape;
-			sd.filter.groupIndex = -1;
-			b2BodyDef bd;
-			bd.type = b2_dynamicBody;
-			bd.position = pivot + m_offset;
-			m_wheel = m_world->CreateBody(&bd);
-			m_wheel->CreateFixture(&sd);
-		}
-
-		{			
-			mainwheel.Initialize(m_wheel, cheetahBody, pivot + m_offset);
-			mainwheel.collideConnected = false;
-			mainwheel.motorSpeed = m_motorSpeed;
-			mainwheel.maxMotorTorque = 5000.0f;
-			mainwheel.enableMotor = m_motorOn;
-			m_motorJoint = (b2RevoluteJoint*)m_world->CreateJoint(&mainwheel);
-		}
-
-		b2Vec2 wheelAnchor;//! THis defines a anchor for the wheel 
-		
-		
-		wheelAnchor = pivot + b2Vec2(0.0f, -1.2f);
-		val=1;
-		CreateLeg(-1.0f, wheelAnchor);
-		CreateLeg( 1.0f, wheelAnchor);
-		val=2;
-		m_wheel->SetTransform(m_wheel->GetPosition(), 120.0f * b2_pi / 180.0f);
-		CreateLeg( -1.0f, wheelAnchor);
-		CreateLeg( 1.0f, wheelAnchor);
-		
-	/*!	
-		   * name -jd <br>
-  * datatype -b2RevoluteJointDef <br>
-  * operation -Defining an anchor point where the bodies are joined. <br>
-  * value - Joints two parts <br>
-  */
-		b2RevoluteJointDef jd;
-		
-		  b2Vec2 anchor;//!works as an anchor two join two parts
-		  //HEAD
-/*!
- * name -head <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the head of the cheetah<br>
-  */
-    /*! \brief 
-  *
-  * name -poly <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for the head of the cheetah<br>
-  * 
-  */
-  /*!		
- * name -bd <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for the head of the cheetah <br>
-  */
-  /*!
-   * name -fd <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for the head<br>
-  */
+    /**  This is the constructor
+     * This is the documentation block for the constructor.
+     */
+    
+    dominos_t::dominos_t()
+    {
+        b2Body* b1; //!b1 is b2Body type variable representing the body of ground\n
+        {
+            
+            b2EdgeShape ground_shape; // this is for shape of ground
+            ground_shape.Set(b2Vec2(-90.0f, 0.0f), b2Vec2(90.0f, 0.0f));
+            b2BodyDef ground_body_def; // body definition of ground
+            b1 = m_world->CreateBody(&ground_body_def);
+            b1->CreateFixture(&ground_shape, 0.0f);
+        }
+        
+        {
+            
+            b2BodyDef *pulley_system_common_body_def = new b2BodyDef;            pulley_system_common_body_def->type = b2_dynamicBody; //! this is the common b2BodyDef variable used for various elements of pulley system.
+            
+            float y=15, b=2, a=2;
+            
+			b2PolygonShape pulley_shape; //pulley_shape is pulley shape variable used for two square boxes\n
+			pulley_shape.SetAsBox(a, b);
+            b2FixtureDef *pulley_fixture_def = new b2FixtureDef; // this is used to define the fixture for pulley shape variable used for two square boxes
+            pulley_fixture_def->density = 20.0f;
+            
+			pulley_system_common_body_def->position.Set(70.0f, y);
+			b2Body* pulley_body_1 = m_world->CreateBody(pulley_system_common_body_def);
+			pulley_body_1->CreateFixture(&pulley_shape, 0.5f); // body of square box 1
+            
+			pulley_system_common_body_def->position.Set(80.0f, y);
+			b2Body* pulley_body_2 = m_world->CreateBody(pulley_system_common_body_def);
+			pulley_body_2->CreateFixture(&pulley_shape, 0.5f); // body of square box 2
+            
+			b2PulleyJointDef pulley_joint; //! pulley_joint is b2PulleyJointDef type variable used as definition of joint of pulley
+			b2Vec2 anchor1(70.0f, y + b);
+			b2Vec2 anchor2(80.0f, y + b);
+			b2Vec2 groundAnchor1(70.0f, y +30);
+			b2Vec2 groundAnchor2(80.0f, y +30);
+			pulley_joint.Initialize(pulley_body_1, pulley_body_2, groundAnchor1, groundAnchor2, anchor1, anchor2, 1.5f);
+            
+			m_world->CreateJoint(&pulley_joint);
+            
+        }
+        
+        
+        
+        /** BLOCK 9 :  BALL ON THE T SHAPE PLATFORM */
+        {
+            
+            b2Body* sphere_body_common; //! sphere_body_common is b2Body shape variable used for all the four spheres
+            b2CircleShape circle; // for the two smallest ball
+            circle.m_radius = 1.0;
+            b2CircleShape circle1; // for the medium sized ball
+            circle1.m_radius = 1.5;
+            b2CircleShape circle2; // for the largest ball
+            circle2.m_radius = 2.0;
  
-			b2Vec2 headref(m_offset.x + 5.4f, m_offset.y  + -32.0f);
-		  b2Body* head;
-		  {
-			  b2PolygonShape poly;
-			  b2Vec2 vertices[8];
-			  vertices[0].Set(headref.x + 0, headref.y + 0);
-			  vertices[1].Set(headref.x + 9, headref.y + 3);
-			  vertices[2].Set(headref.x + 10, headref.y + -2);
-			  vertices[3].Set(headref.x + 4, headref.y + -5.5);
-			  vertices[4].Set(headref.x + -3, headref.y + -5);
-			  vertices[5].Set(headref.x + -3.5, headref.y + -4);
-			  vertices[6].Set(headref.x + -3, headref.y + -3);
-			  vertices[7].Set(headref.x + 0, headref.y + -2);
-			  poly.Set(vertices, 8);
-			  b2BodyDef bd;
-			  bd.position.Set(headref.x + -44.0f, headref.y + 34.0f);
-			  bd.type = b2_dynamicBody;
-			  head = m_world->CreateBody(&bd);
-			  b2FixtureDef* fd= new b2FixtureDef;
-			  fd->shape = new b2PolygonShape;
-			  fd->shape = &poly;
-			  fd->density = 0.00001f;
-			  fd->filter.groupIndex = 1;
-			  head->CreateFixture(fd);
-		  
-		  }
-		 
-		 
-		  //MAIN B0DY
-		  /*!
- * name -mainbody <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the main body<br>
-  */
-   /*! \brief 
-  *
-  * name -poly <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for main body of the cheetah<br>
-  * 
-  */
-  /*!		
- * name -bd <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for main body of the cheetah <br>
-  */
-   /*!
-   * name -fd <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for main body of the cheetah<br>
-  */
-  /*!
-    * name -jd1 <br>
-  * datatype - b2WeldJointDef <br>
-  * operation -Defining a joint which joins two bodies rigidly <br>
-  * value - Joints the cheetahbody and mainbody<br>
-  */
-		  b2Vec2 bodyref(m_offset.x + 6.0f, m_offset.y  + -32.0f);
-		  
-		  
-		  b2Body* mainbody;
-		  {
-				b2PolygonShape poly;
-				b2Vec2 vertices[8];
-				vertices[0].Set(bodyref.x + 0, bodyref.y + 0);
-				vertices[1].Set(bodyref.x + 10, bodyref.y + 3);
-				vertices[2].Set(bodyref.x + 28, bodyref.y + 0.5);
-				vertices[3].Set(bodyref.x + 28, bodyref.y + -1.5);
-				vertices[4].Set(bodyref.x + 14.5, bodyref.y + -10);
-				vertices[5].Set(bodyref.x + 10, bodyref.y + -10.2);
-				vertices[6].Set(bodyref.x + 4, bodyref.y + -8);
-				vertices[7].Set(bodyref.x + 0.5, bodyref.y + -3);
-				poly.Set(vertices, 8);
-				b2BodyDef bd;
-				bd.position.Set(bodyref.x + -33.0f, bodyref.y + 36.0f);
-				bd.type = b2_dynamicBody;
-				mainbody = m_world->CreateBody(&bd);
-				b2FixtureDef* fd= new b2FixtureDef;
-				fd->shape = new b2PolygonShape;
-				fd->shape = &poly;
-				fd->density = 0.0f;
-				fd->filter.groupIndex = -1;
-				mainbody->CreateFixture(fd);
+            
+            b2FixtureDef ballfd; // for the two smallest ball
+            ballfd.shape = &circle;
+            ballfd.density = 10.64f;
+            ballfd.friction = 0.2f;
+            ballfd.restitution = 0.0f;
+            b2FixtureDef ballfd1; // for the medium sized ball circle
+            ballfd1.shape = &circle1;
+            ballfd1.density = 10.0f;
+            ballfd1.friction = 0.2f;
+            ballfd1.restitution = 0.0f;
+            b2FixtureDef ballfd2; // for the largest ball
+            ballfd2.shape = &circle2;
+            ballfd2.density = 10.0f;
+            ballfd2.friction = 0.2f;
+            ballfd2.restitution = 0.0f;
+           
+            b2BodyDef ball_common_body_def; //!ball_common_body_def is b2BodyDef type common body definition for all four balls
+            ball_common_body_def.type = b2_dynamicBody;
+            
+            ball_common_body_def.position.Set(-42.f, 41.4f);
+            sphere_body_common = m_world->CreateBody(&ball_common_body_def);
+            sphere_body_common->CreateFixture(&ballfd);
+            
+            ball_common_body_def.position.Set(-40.f, 41.4f);
+            sphere_body_common = m_world->CreateBody(&ball_common_body_def);
+            sphere_body_common->CreateFixture(&ballfd);
+            
+            ball_common_body_def.position.Set(-37.5f, 41.9f);
+            sphere_body_common = m_world->CreateBody(&ball_common_body_def);
+            sphere_body_common->CreateFixture(&ballfd1);
+            
+            ball_common_body_def.position.Set(-33.5f, 42.9f);
+            sphere_body_common = m_world->CreateBody(&ball_common_body_def);
+            sphere_body_common->CreateFixture(&ballfd2);
+            
+        }
+        {
+            b2BodyDef killer_body_def; //! killer_body_def is b2BodyDef type variable for killer's body definition
+            killer_body_def.position.Set(-50.f, 17.5f);
+            b2Body* killer_body = m_world->CreateBody(&killer_body_def); // b2Body* type variable for killer's body
+            
+            b2PolygonShape killer_mid_body_shape;  // b2PolygonShape type variable for killer's mid_body shape
+            killer_mid_body_shape.SetAsBox(2.f, 2.5f, b2Vec2(0,-3.5),0);
+            b2FixtureDef *killer_mid_body_fixture = new b2FixtureDef;  // b2FixtureDef * type variable for killer's mid_body fixture
+            killer_mid_body_fixture->shape = &killer_mid_body_shape;
+            
+            b2CircleShape killer_face_shape;  // b2CircleShape type variable for killer's face shape
+            killer_face_shape.m_radius = 1.0;
+            b2FixtureDef *killer_face_fixture = new b2FixtureDef;  // b2FixtureDef * type variable for killer's face fixture
+            killer_face_fixture->shape = &killer_face_shape;
+                        
+            b2PolygonShape killer_left_leg_shape;  // b2PolygonShape type variable for killer's left leg shape
+            killer_left_leg_shape.SetAsBox(0.3f, 2.f, b2Vec2(-1.5,-7),0);
+            b2FixtureDef *killer_left_leg_fixture = new b2FixtureDef;  // b2FixtureDef * type variable for killer's left_leg fixture
+            killer_left_leg_fixture->shape = &killer_left_leg_shape;
+            
+            b2PolygonShape killer_right_leg_shape;  // b2PolygonShape type variable for killer's right_leg shape
+            killer_right_leg_shape.SetAsBox(0.3f, 2.f, b2Vec2(1.5,-7),0);
+            b2FixtureDef *killer_right_leg_fixture = new b2FixtureDef;  // b2FixtureDef type variable for killer's right_leg fixture
+            killer_right_leg_fixture->shape = &killer_right_leg_shape;
+            
+            b2PolygonShape killer_right_hand_shape; // b2PolygonShape type variable for killer's right_hand shape
+            killer_right_hand_shape.SetAsBox(0.3f, 2.f, b2Vec2(2.5,-3),0.3);
+            b2FixtureDef *killer_right_hand_fixture = new b2FixtureDef; // b2FixtureDef type variable for killer's right_hand fixture
+            killer_right_hand_fixture->shape = &killer_right_hand_shape;
+            
+            b2PolygonShape killer_left_hand_shape; //b2PolygonShape type variable for killer's left_hand shape
+            killer_left_hand_shape.SetAsBox(0.3f, 2.f, b2Vec2(-3.8,-1),-1.6);
+            b2FixtureDef *killer_left_hand_fixture = new b2FixtureDef; // type variable for
+            killer_left_hand_fixture->shape = &killer_left_hand_shape;
+            
+            killer_body->CreateFixture(killer_mid_body_fixture);
+            killer_body->CreateFixture(killer_face_fixture);
+            killer_body->CreateFixture(killer_left_leg_fixture);
+            killer_body->CreateFixture(killer_right_leg_fixture);
+            killer_body->CreateFixture(killer_right_hand_fixture);
+            killer_body->CreateFixture(killer_left_hand_fixture);
+        }
+        {
+            float x=0;
+            b2BodyDef human_body_def; //!human_body_def is b2BodyDef type variable for human's body definition
+            human_body_def.position.Set(-80.f, 17.5f);
+            b2Body* human_body = m_world->CreateBody(&human_body_def); //b2Body* type variable for human's body
+            
+            b2PolygonShape human_mid_body_shape; // b2PolygonShape type variable for human's face
+            human_mid_body_shape.SetAsBox(1.6f, 2.5f, b2Vec2(0-x,-3.5),0);
+            b2FixtureDef *human_mid_body_fixture = new b2FixtureDef; // b2FixtureDef type variable for human's mid_body fixture
+            human_mid_body_fixture->shape = &human_mid_body_shape;
+            
+            b2CircleShape human_face_shape; // b2CircleShape type variable for human's face shape
+            human_face_shape.m_radius = 1.0;
+            b2FixtureDef *human_face_fixture = new b2FixtureDef; // b2FixtureDef type variable for human's face fixture
+            human_face_fixture->shape = &human_face_shape;
+            
+            b2PolygonShape human_left_leg_shape; // b2PolygonShape type variable for human's left leg shape
+            human_left_leg_shape.SetAsBox(0.3f, 2.f, b2Vec2(-1.3-x,-7),0);
+            b2FixtureDef *human_left_leg_fixture = new b2FixtureDef; // type variable for human's left_leg fixture
+            human_left_leg_fixture->shape = &human_left_leg_shape;
+            
+            b2PolygonShape human_right_leg_shape; // b2PolygonShape type variable for human's right_leg shape
+            human_right_leg_shape.SetAsBox(0.3f, 2.f, b2Vec2(1.3-x,-7),0);
+            b2FixtureDef *human_right_leg_fixture = new b2FixtureDef; // type variable for human's right_leg fixture
+            human_right_leg_fixture->shape = &human_right_leg_shape;
+            
+            b2PolygonShape human_right_hand_shape; // b2PolygonShape type variable for human's right_hand shape
+            human_right_hand_shape.SetAsBox(0.3f, 2.2f, b2Vec2(2-x,1.2),3);
+            b2FixtureDef *human_right_hand_fixture = new b2FixtureDef; // type variable for  human's right_hand fixture
+            human_right_hand_fixture->shape = &human_right_hand_shape;
+            
+            b2PolygonShape human_left_hand_shape; // b2PolygonShape type variable for human's left_hand shape
+            human_left_hand_shape.SetAsBox(0.3f, 2.2f, b2Vec2(-2-x,1.2),-3);
+            b2FixtureDef *human_left_hand_fixture = new b2FixtureDef; // b2PolygonShape type variable for human's left_hand shape
+            human_left_hand_fixture->shape = &human_left_hand_shape;
+            
+            human_body->CreateFixture(human_mid_body_fixture);
+            human_body->CreateFixture(human_face_fixture);
+            human_body->CreateFixture(human_left_leg_fixture);
+            human_body->CreateFixture(human_right_leg_fixture);
+            human_body->CreateFixture(human_right_hand_fixture);
+            human_body->CreateFixture(human_left_hand_fixture);
+        }
+        {
+            b2Body* hydrogen_sphere_body; //!hydrogen_sphere_body is b2Body* type variable for hydrogen sphere body
+            b2CircleShape hydrogen_sphere_shape;  //b2CircleShape type variable for hydrogen sphere shape
+            hydrogen_sphere_shape.m_radius = 1.0;
+            
+            b2FixtureDef hydrogen_sphere_fixture_def; //b2FixtureDef type variable for hydrogen sphere fixture definition
+            hydrogen_sphere_fixture_def.shape = &hydrogen_sphere_shape;
+            hydrogen_sphere_fixture_def.density = 15.0f;
+            hydrogen_sphere_fixture_def.friction = 0.2f;
+            hydrogen_sphere_fixture_def.restitution = 0.0f;
+            b2BodyDef hydrogen_sphere_body_def; // b2BodyDef type variable for hydrogen sphere body definition
+            hydrogen_sphere_body_def.type = b2_dynamicBody;
+            hydrogen_sphere_body_def.position.Set(-74.f, 2.f);
+            hydrogen_sphere_body = m_world->CreateBody(&hydrogen_sphere_body_def);
+            hydrogen_sphere_body->CreateFixture(&hydrogen_sphere_fixture_def);
+            hydrogen_sphere_body->SetGravityScale(-1);
+            
+            hydrogen_sphere_body_def.position.Set(-73.f, 2.f);
+            hydrogen_sphere_body = m_world->CreateBody(&hydrogen_sphere_body_def);
+            hydrogen_sphere_body->CreateFixture(&hydrogen_sphere_fixture_def);
+            hydrogen_sphere_body->SetGravityScale(-1);
+            
+        }
+        {
+            b2BodyDef hinge_body_def; //!hinge_body_def is b2BodyDef type variable for hinge body definition
+            hinge_body_def.position.Set(-80.f, 4.f);
+            b2Body* hinge_body = m_world->CreateBody(&hinge_body_def);
+            
+            b2PolygonShape shape1; // b2PolygonShape type variable for body1
+            shape1.SetAsBox(6.f, 4.f, b2Vec2(0,0),0);
+            b2FixtureDef *fd1 = new b2FixtureDef;
+            fd1->shape = &shape1;
+            
+            b2PolygonShape shape2; // b2PolygonShape type variable for body2
+            shape2.SetAsBox(12.f, 4.f, b2Vec2(25,0),0);
+            b2FixtureDef *fd2 = new b2FixtureDef;
+            fd2->shape = &shape2;
+            
+            b2PolygonShape shape3; // b2PolygonShape type variable for body3
+            shape3.SetAsBox(0.6f, 16.f, b2Vec2(36,20),0);
+            b2FixtureDef *fd3 = new b2FixtureDef;
+            fd3->shape = &shape3;
 
-				b2WeldJointDef jd1;
-
-				anchor.Set(bodyref.x + -20.0f, bodyref.y + 30.0f);
-				jd1.Initialize(cheetahBody, mainbody, anchor);
-				m_world->CreateJoint(&jd1);
-		  
-		  }
-		  
-		  
-		//NECK
-/*!
- * name -neck[3] <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains array of pointers to the neck part of the cheetah<br>
-  */
-  /*! \brief 
-  *
-  * name -hrev <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for horizontal box of the pieces of neck<br>
-  * 
-  */
-  /*! \brief 
-  *
-  * name -vrev <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for vertical part of the pieces of neck<br>
-  * 
-  */
-  /*!		
- * name -bd2 <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for parts of the neck of the cheetah <br>
-  */
-  /*!
-   * name -fd2 <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for the parts of the neck of the cheetah<br>
-  */
-  /*!
-    * name -jd1 <br>
-  * datatype - b2WeldJointDef <br>
-  * operation -Defining a joint which joins two bodies rigidly <br>
-  * value - Joints the neck[i] and neck[i-1] for i=1,2<br>
-  */
-		b2Vec2 neckref(m_offset.x + 11.3f, m_offset.y  + -33.5f);
-		b2Body* neck[3];
-		{
-			jd.enableLimit = true;
-			jd.lowerAngle = -0.f * b2_pi;
-			jd.upperAngle = 0.0f * b2_pi; 
-			for (int i = 0; i < 3; i++)
-			{				
-				b2PolygonShape hrec,vrec;
-				hrec.SetAsBox(0.2f, 2.0f);
-				vrec.SetAsBox(0.4f, 1.5f);
-				b2BodyDef bd2;
-				bd2.position.Set(neckref.x + -32.5f-0.9*i, neckref.y + 34.5f);
-				bd2.type = b2_dynamicBody;
-				bd2.angle=10*DEGTORAD;
-				neck[i] = m_world->CreateBody(&bd2);
-				b2FixtureDef* fd2 = new b2FixtureDef;
-				fd2->density = 0.0001f;
-				fd2->filter.groupIndex = 1;
-				fd2->shape = new b2PolygonShape;
-				fd2->shape = &hrec;
-				neck[i]->CreateFixture(fd2);
-				fd2->shape = &vrec;
-				neck[i]->CreateFixture(fd2);
-				if(i>0)
-				{
-					b2WeldJointDef jd1;
-					anchor.Set(neckref.x + -32.0f-0.9*i, neckref.y + 34.5f);
-					jd1.Initialize(neck[i-1], neck[i], anchor);
-					m_world->CreateJoint(&jd1);
-				}
-			}
+            
+            
+            b2PolygonShape shape10; //! shape10 is b2PolygonShape type variable for body 10. body10 = horizontal bar
+            shape10.SetAsBox(32.f, 0.4f, b2Vec2(-20.f,0.f),0);
+            
+            b2PolygonShape shape11; //!shape11 b2PolygonShape type variable for body11. body11 = verticla bar.
+            shape11.SetAsBox(0.2f, 8.0f , b2Vec2(-50.f,1.f),0);
 			
-			b2WeldJointDef jd1;
-			anchor.Set(neckref.x + -28.0f-0.9*3, neckref.y + 34.5f);
-			jd1.Initialize(neck[2],head, anchor);
-			m_world->CreateJoint(&jd1);
+            b2BodyDef bd10; // b2BodyDef type variable for body10
+            bd10.position.Set(-44.0f, 40.0f);
+            bd10.type = b2_dynamicBody;
+            b2Body* body10 = m_world->CreateBody(&bd10);
+            
+            b2FixtureDef *fd10 = new b2FixtureDef; // b2FixtureDef type variable for body10
+            fd10->density = 1.f;
+            fd10->shape = new b2PolygonShape;
+            fd10->shape = &shape10;
+            
+            b2FixtureDef *fd11 = new b2FixtureDef; // b2BodyDef type variable for body11
+            fd11->density = 1.f;
+            fd11->shape = new b2PolygonShape;
+            fd11->shape = &shape11;
+            
+            body10->CreateFixture(fd10);
+            body10->CreateFixture(fd11);
+            
+            b2BodyDef bd12; // b2BodyDef type variable for body12 which is hidden object.
+            bd12.position.Set(-44.0f, 40.0f);
+            b2Body* body12 = m_world->CreateBody(&bd12);
 			
-			anchor.Set(neckref.x + -28.0f-0.9*0, neckref.y + 34.5f);
-			jd1.Initialize(neck[0],cheetahBody, anchor);
-			m_world->CreateJoint(&jd1);
-		}	
-		
-	
-	  
-	//Hip
-/*!
- * name -hip <br>
-  * datatype -b2Body* <br>
-  * operation -Pointer to b2Body object. <br>
-  * value - This contains pointer to the hip part of the cheetah<br>
-  */
-  /*!  
-  *
-  * name poly <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define a convex Polygon. <br>
-  * value - Shape for hip part of the cheetah<br>
-  * 
-  */
-  /*!
-  * name -hipfd <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for hip part of the cheetah<br>
-  */ 
-  /*!		
- * name -hipbd <br>
-  * datatype -b2BodyDef <br>
-  * operation -Holds all the data needed to construct a rigid body. <br>
-  * value -Contains all data for hip part of the cheetah <br>
-  */
-	b2Vec2 hipref(m_offset.x + 0.5f, m_offset.y  + -32.0f);
-	  b2Body* hip;
-	  {
-		b2PolygonShape poly;
-		b2Vec2 vertices[8];
-		vertices[0].Set(hipref.x + 0,hipref.y + 0);
-		vertices[1].Set(hipref.x + 10, hipref.y + 1);
-		vertices[2].Set(hipref.x + 13, hipref.y + -3);
-		vertices[3].Set(hipref.x + 11, hipref.y + -6);
-		vertices[4].Set(hipref.x + 4.4, hipref.y + -5);
-		vertices[5].Set(hipref.x + 3.6, hipref.y + -3.6);
-		vertices[6].Set(hipref.x + 1.4, hipref.y + -2.6);
-		vertices[7].Set(hipref.x + -1, hipref.y + -4);
-		poly.Set(vertices, 8);
-		b2FixtureDef hipfd;
-		hipfd.shape = &poly;
-		hipfd.density = 0.0f;
-		hipfd.friction = 1.0f;
-		hipfd.restitution = 0.8f;
-		hipfd.filter.groupIndex = -1;
-		  
-/*!
-    * name -jd1 <br>
-  * datatype - b2WeldJointDef <br>
-  * operation -Defining a joint which joins two bodies rigidly <br>
-  * value - Joints the cheetahBody and hip part of the cheetah<br>
-  */ 
-		b2BodyDef hipbd;
-		hipbd.type = b2_dynamicBody;
-		hipbd.position.Set(hipref.x + 6.0f, hipref.y + 37.0f);
-		hip = m_world->CreateBody(&hipbd);
-		hip->CreateFixture(&hipfd);
-		b2WeldJointDef jd1;
+            b2RevoluteJointDef jointDef10; //!jointDef10 is b2RevoluteJointDef type variable used for the revolute joint
+            jointDef10.bodyA = body10;
+            jointDef10.bodyB = body12;
+			
+            jointDef10.localAnchorA.Set(-0.4,0);
+            jointDef10.localAnchorB.Set(-0.4,0);
+            jointDef10.collideConnected = false;
+            
+            m_world->CreateJoint(&jointDef10);
 
-		anchor.Set(hipref.x + 6.0f, hipref.y + 35.5f);
-		jd1.Initialize(cheetahBody, hip, anchor);
-		m_world->CreateJoint(&jd1);
-	  
-	  } 
-	  
-	  
-	b2Vec2 ref(m_offset.x + 3.0f, m_offset.y  + -33.0f);
-	float32 tail_density = 0.0000001f;
-	anchor.Set(ref.x + 6.0f, ref.y + 35.5f);
-		 //TAIL
-	{
-		//Tail object1
-/*!
- * name -tail1 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object1<br>
- */
-  
-/*! 
-  *
-  * name -hrec <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define the horizontal part of the 1st piece of the tail. <br>
-  * value - This contains shape for horizontal box which is in a shape of rectangle<br>
-  */
-/*! 
-  *
-  * name -vrec <br>
-  * datatype -b2PolygonShape <br>
-  * operation -To define the vertical part of the 1st piece of the tail. <br>
-  * value - This contains shape for vertical box which is in a shape of rectangle<br>
-  */
-/*!	
- * name -bd2 <br>
- * datatype -b2BodyDef <br>
- * operation -Holds all the data needed to construct a rigid body. <br>
- * value -Contains all data for tail object1 <br>
- */
- /*!
-   * name -fd2 <br>
-  * datatype -b2FixtureDef <br>
-  * operation -Used to attach a shape to a body for collision detection <br>
-  * value - Defines a fixture for tail object1<br>
-  */
-		b2Body* tail1;
-		b2PolygonShape hrec,vrec;
-		hrec.SetAsBox(1.0f, 2.0f);
-		vrec.SetAsBox(2.0f, 1.0f);
+            hinge_body->CreateFixture(fd1);
+            hinge_body->CreateFixture(fd2);
+            hinge_body->CreateFixture(fd3);
+        }
 
-		b2BodyDef bd2;
-		bd2.angle=10*DEGTORAD;
-		bd2.position.Set(ref.x + 19.0f, ref.y + 35.5f);
-		bd2.type = b2_dynamicBody;
-		bd2.type = b2_dynamicBody;
-
-		tail1 = m_world->CreateBody(&bd2);
-		b2FixtureDef* fd2 = new b2FixtureDef;
-		fd2->density = tail_density;
-		fd2->shape = new b2PolygonShape;
-		fd2->shape = &hrec;
-		fd2->filter.groupIndex = -2;
-		tail1->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail1->CreateFixture(fd2);
-
-		jd.enableLimit = true;
-		jd.lowerAngle = -0.1f * b2_pi;
-		jd.upperAngle = 0.2f * b2_pi; 
-		anchor.Set(ref.x + 18.0f, ref.y + 35.0f);
-		jd.Initialize(tail1, cheetahBody, anchor);
-		m_world->CreateJoint(&jd);
-
-/*!
- * name -tail2 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object2<br>
- */
-		//Tail object2
-		b2Body* tail2;
-		tail2 = m_world->CreateBody(&bd2);
-		bd2.angle=-35*DEGTORAD;
-		bd2.position.Set(ref.x + 22.7f, ref.y + 34.5f);
-		tail2 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.9f, 1.9f);
-		vrec.SetAsBox(1.9f, 0.9f);
-		fd2->shape = &hrec;
-		tail2->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail2->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 21.0f, ref.y + 35.0f);
-		jd.Initialize(tail1,tail2, anchor);
-		m_world->CreateJoint(&jd);
-
-  /*! \brief 
-  * name -joint4 <br>
-  * datatype -b2DistanceJointDef <br>
-  * operation -Defining an spring joint between two bodies to staility <br>
-  * value - this joins tail1 and tail2<br>
-  * 
-  */
-		// making a distance joint
-		b2DistanceJointDef joint4;
-		const b2Vec2 pt1(ref.x + 19.0f, ref.y + 37.6f);
-		const b2Vec2 pt2(ref.x + 23.2f, ref.y + 36.5f);
-		joint4.Initialize(tail1, tail2, pt1, pt2);
-		joint4.collideConnected = true;
-		joint4.frequencyHz = 1.0f;
-		joint4.dampingRatio =0.8f;
-		m_world->CreateJoint(&joint4);
-		
-/*!
- * name -tail3 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object3<br>
- */
-
-		//Tailobject3
-		b2Body* tail3;
-		tail3 = m_world->CreateBody(&bd2);
-		bd2.angle=-60*DEGTORAD;
-		bd2.position.Set(ref.x + 25.0f, ref.y + 32.0f);
-		tail3 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.85f, 1.8f);
-		vrec.SetAsBox(1.8f, 0.85f);
-		fd2->shape = &hrec;
-		tail3->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail3->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 23.1f, ref.y + 33.0f);
-		jd.Initialize(tail2,tail3, anchor);
-		m_world->CreateJoint(&jd);
-		
-/*!
- * name -tail4 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object4<br>
- */
-
-		//Tailobject4
-		b2Body* tail4;
-		tail4 = m_world->CreateBody(&bd2);
-		bd2.angle=-80*DEGTORAD;
-		bd2.position.Set(ref.x + 26.0f, ref.y + 28.3f);
-		tail4 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.80f, 1.7f);
-		vrec.SetAsBox(1.7f, 0.80f);
-		fd2->shape = &hrec;
-		tail4->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail4->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 25.5f, ref.y + 30.0f);
-		jd.Initialize(tail3,tail4, anchor);
-		m_world->CreateJoint(&jd);
-		
-/*!
- * name -tail5 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object5<br>
- */
-
-		//Tailobject5
-		b2Body* tail5;
-		tail5 = m_world->CreateBody(&bd2);
-		bd2.angle=-90*DEGTORAD;
-		bd2.position.Set(ref.x + 26.0f, ref.y + 25.2f);
-		tail5 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.80f, 1.6f);
-		vrec.SetAsBox(1.6f, 0.70f);
-		fd2->shape = &hrec;
-		tail5->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail5->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 25.5f, ref.y + 27.0f);
-		jd.Initialize(tail4,tail5, anchor);
-		m_world->CreateJoint(&jd);
-
-/*!
- * name -tail6 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object6<br>
- */
-		//Tailobject6
-		b2Body* tail6;
-		tail6 = m_world->CreateBody(&bd2);
-		bd2.angle=-90*DEGTORAD;
-		bd2.position.Set(ref.x + 26.0f, ref.y + 22.2f);
-		tail6 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.70f, 1.4f);
-		vrec.SetAsBox(1.3f, 0.50f);
-		fd2->shape = &hrec;
-		tail6->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail6->CreateFixture(fd2);
-
-		anchor.Set(ref.x  + 25.5f, ref.y + 24.5f);
-		jd.Initialize(tail5,tail6, anchor);
-		m_world->CreateJoint(&jd);
-
-/*!
- * name -tail7 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object7<br>
- */
-		//Tailobject7
-		b2Body* tail7;
-		tail7 = m_world->CreateBody(&bd2);
-		bd2.angle=-80*DEGTORAD;
-		bd2.position.Set(ref.x + 26.0f, ref.y + 19.2f);
-		tail7 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.60f, 1.3f);
-		vrec.SetAsBox(1.2f, 0.50f);
-		fd2->shape = &hrec;
-		tail7->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail7->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 25.5f, ref.y + 20.5f);
-		jd.Initialize(tail6,tail7, anchor);
-		m_world->CreateJoint(&jd);
-
-/*!
- * name -tail8 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object8<br>
- */
-		//Tailobject8
-		b2Body* tail8;
-		tail8 = m_world->CreateBody(&bd2);
-		bd2.angle=-55*DEGTORAD;
-		bd2.position.Set(ref.x + 27.0f, ref.y + 17.2f);
-		tail8 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.50f, 1.2f);
-		vrec.SetAsBox(1.1f, 0.44f);
-		fd2->shape = &hrec;
-		tail8->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail8->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 26.3f, ref.y + 19.0f);
-		jd.Initialize(tail7,tail8, anchor);
-		m_world->CreateJoint(&jd);
-		
-/*!
- * name -tail9 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object9<br>
- */
-
-		//Tailobject9
-		b2Body* tail9;
-		tail9 = m_world->CreateBody(&bd2);
-		bd2.angle=-25*DEGTORAD;
-		bd2.position.Set(ref.x + 28.5f, ref.y + 16.2f);
-		tail9 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.50f, 0.9f);
-		vrec.SetAsBox(1.6f, 0.30f);
-		fd2->shape = &hrec;
-		tail9->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail9->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 27.5f, ref.y + 17.0f);
-		jd.Initialize(tail8,tail9, anchor);
-		m_world->CreateJoint(&jd);
-
-/*!
- * name -tail10 <br>
- * datatype -b2Body* <br>
- * operation -Pointer to b2Body object. <br>
- * value - This contains pointer to the tail object10<br>
- */
-		//Tailobject10
-		b2Body* tail10;
-		tail10 = m_world->CreateBody(&bd2);
-		bd2.angle=15*DEGTORAD;
-		bd2.position.Set(ref.x + 31.0f, ref.y + 16.1f);
-		tail10 = m_world->CreateBody(&bd2);
-		hrec.SetAsBox(0.80f, 0.3f);
-		vrec.SetAsBox(1.3f, 0.20f);
-		fd2->shape = &hrec;
-		tail10->CreateFixture(fd2);
-		fd2->shape = &vrec;
-		tail10->CreateFixture(fd2);
-
-		anchor.Set(ref.x + 29.5f, ref.y + 16.0f);
-		jd.Initialize(tail9,tail10, anchor);
-		m_world->CreateJoint(&jd);
-	  }
-		
-		
-  }
-
-  sim_t *sim = new sim_t("Dominos", dominos_t::create);
+    }
+    
+    sim_t *sim = new sim_t("Dominos", dominos_t::create);
+    
 }
