@@ -26,12 +26,12 @@ namespace cs251
   cs251::sim_t* entry;
   cs251::base_sim_t* test;
   cs251::settings_t settings;
-  int32 width = 640;
-  int32 height = 480;
+  int32 width = 1280;
+  int32 height = 720;
   int32 frame_period = 16;
   int32 main_window;
   float settings_hz = 60.0;
-  float32 view_zoom = 1.0f;
+  float32 view_zoom = 2.0f; //ng 1.0 to 2.0
   int tx, ty, tw, th;
   bool r_mouse_down;
   b2Vec2 lastp;
@@ -277,7 +277,7 @@ namespace cs251
     test->set_text_line(30);
     b2Vec2 old_center = settings.view_center;
     settings.hz = settings_hz;
-    
+      settings.view_center.x = settings.view_center.x + 0.04f; //ng line added
     test->step(&settings);
     
     if (old_center.x != settings.view_center.x || old_center.y != settings.view_center.y)

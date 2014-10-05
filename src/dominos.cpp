@@ -304,8 +304,8 @@ namespace cs251
             jointDef10.bodyA = body10;
             jointDef10.bodyB = body12;
 			
-            jointDef10.localAnchorA.Set(-0.4,0);
-            jointDef10.localAnchorB.Set(-0.4,0);
+            jointDef10.localAnchorA.Set(+0.4,0);
+            jointDef10.localAnchorB.Set(+0.4,0);
             jointDef10.collideConnected = false;
             
             m_world->CreateJoint(&jointDef10);
