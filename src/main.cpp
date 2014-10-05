@@ -19,7 +19,7 @@
 /* 
  * Base code for CS 251 Software Systems Lab 
  * Department of Computer Science and Engineering, IIT Bombay
- * Instructor: Parag Chaudhuri
+ * Instructor: Sharat Chandran
  */
 
 //! These are user defined include files
