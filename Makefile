@@ -36,8 +36,8 @@ WARN_FMT="%30s\n"
 
 # Library Paths
 BOX2D_ROOT=$(EXTERNAL_ROOT)
-GLUI_ROOT=/usr/X11
-GL_ROOT=/usr/X11/include/
+GLUI_ROOT=/usr
+GL_ROOT=/usr/include/
 
 #Libraries
 LIBS = -lBox2D -lglui -lglut -lGLU -lGL
